@@ -1,0 +1,97 @@
+import csv
+
+# Hardcoded stock prices dictionary
+stock_prices = {
+    "AAPL": 180,
+    "TSLA": 250,
+    "MSFT": 420,
+    "GOOGL": 2800,
+    "AMZN": 3400,
+    "NVDA": 850,
+    "META": 500,
+    "NFLX": 650,
+    "DIS": 95,
+    "JPM": 190
+}
+
+def get_user_input():
+    portfolio = {}
+    print("Enter your stocks and quantities. Type 'done' when finished.")
+    while True:
+        stock = input("Stock symbol (e.g., AAPL): ").upper()
+        if stock == 'DONE':
+            break
+        if stock not in stock_prices:
+            print(f"Stock '{stock}' not found in price list. Available stocks: {', '.join(stock_prices.keys())}")
+            continue
+        try:
+            quantity = float(input(f"Quantity of {stock}: "))
+            if quantity <= 0:
+                print("Quantity must be positive.")
+                continue
+        except ValueError:
+            print("Invalid quantity. Please enter a number.")
+            continue
+        
+        if stock in portfolio:
+            portfolio[stock] += quantity
+        else:
+            portfolio[stock] = quantity
+    return portfolio
+
+def calculate_total_investment(portfolio):
+    total = 0
+    for stock, qty in portfolio.items():
+        total += stock_prices[stock] * qty
+    return total
+
+def display_portfolio(portfolio):
+    print("\nYour Portfolio:")
+    print(f"{'Stock':<10}{'Quantity':<10}{'Price':<10}{'Value':<10}")
+    print("-" * 40)
+    for stock, qty in portfolio.items():
+        price = stock_prices[stock]
+        value = price * qty
+        print(f"{stock:<10}{qty:<10}{price:<10}${value:<10.2f}")
+    total = calculate_total_investment(portfolio)
+    print("-" * 40)
+    print(f"{'Total Investment':<30}${total:.2f}")
+
+def save_to_file(portfolio, filename):
+    if filename.endswith('.csv'):
+        with open(filename, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Stock', 'Quantity', 'Price Per Share', 'Total Value'])
+            for stock, qty in portfolio.items():
+                price = stock_prices[stock]
+                value = price * qty
+                writer.writerow([stock, qty, price, f"{value:.2f}"])
+            total = calculate_total_investment(portfolio)
+            writer.writerow([])
+            writer.writerow(['Total Investment', '', '', f"{total:.2f}"])
+        print(f"Portfolio saved to {filename}")
+    else:
+        with open(filename, 'w') as file:
+            file.write("Stock\tQuantity\tPrice Per Share\tTotal Value\n")
+            for stock, qty in portfolio.items():
+                price = stock_prices[stock]
+                value = price * qty
+                file.write(f"{stock}\t{qty}\t{price}\t{value:.2f}\n")
+            total = calculate_total_investment(portfolio)
+            file.write(f"\nTotal Investment\t\t\t{total:.2f}\n")
+        print(f"Portfolio saved to {filename}")
+
+def main():
+    portfolio = get_user_input()
+    if not portfolio:
+        print("No stocks entered. Exiting.")
+        return
+    display_portfolio(portfolio)
+    
+    save = input("Do you want to save the portfolio to a file? (yes/no): ").strip().lower()
+    if save == 'yes':
+        filename = input("Enter filename (with .txt or .csv extension): ").strip()
+        save_to_file(portfolio, filename)
+
+if __name__ == "__main__":
+    main()
